@@ -1,0 +1,8 @@
+.classpath
+.project
+.externalToolBuilders
+.*.swp
+nbproject
+.idea
+*.iml
+/target

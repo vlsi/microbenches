@@ -46,13 +46,14 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 
 @State(Scope.Thread)
 @Fork(value = 3)
-@Warmup(iterations = 3)
-@Measurement(iterations = 6)
-@BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Warmup(iterations = 10)
+@Measurement(iterations = 10)
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class FastListBench
 {
    @Param({ "base", "new", "orig" })
@@ -64,43 +65,28 @@ public class FastListBench
    private String[] strings;
    private ArrayList<String> fastList;
 
+   @Param({ "15" })
+   private int loopLen = 15;
+
    @Benchmark
-   public boolean testList()
+   public Object testList(Blackhole b)
    {
-      boolean b = true;
-      b &= fastList.add(strings[0]);
-      b &= fastList.add(strings[1]);
-      b &= fastList.add(strings[2]);
-      b &= fastList.add(strings[3]);
-      b &= fastList.add(strings[4]);
-      b &= fastList.add(strings[5]);
-      b &= fastList.add(strings[6]);
-      b &= fastList.add(strings[7]);
-      b &= fastList.add(strings[8]);
-      b &= fastList.add(strings[9]);
-      b &= fastList.add(strings[10]);
-      b &= fastList.add(strings[11]);
-      b &= fastList.add(strings[12]);
-      b &= fastList.add(strings[13]);
-      b &= fastList.add(strings[14]);
+       ArrayList<String> fastList = this.fastList;
+       String[] strings = this.strings;
+       for (int i = 0; i < loopLen; i++) {
+           b.consume(fastList.add(strings[i]));
+       }
+       fastList.clear();
+       return fastList;
+   }
 
-      b &= fastList.remove(strings[14]);
-      b &= fastList.remove(strings[13]);
-      b &= fastList.remove(strings[12]);
-      b &= fastList.remove(strings[11]);
-      b &= fastList.remove(strings[10]);
-      b &= fastList.remove(strings[9]);
-      b &= fastList.remove(strings[8]);
-      b &= fastList.remove(strings[7]);
-      b &= fastList.remove(strings[6]);
-      b &= fastList.remove(strings[5]);
-      b &= fastList.remove(strings[4]);
-      b &= fastList.remove(strings[3]);
-      b &= fastList.remove(strings[2]);
-      b &= fastList.remove(strings[1]);
-      b &= fastList.remove(strings[0]);
-
-      return b;
+   @Benchmark
+   public Object testSingle(Blackhole b)
+   {
+       ArrayList<String> fastList = this.fastList;
+       b.consume(fastList.add(listImpl));
+       fastList.clear();
+       return fastList;
    }
 
    @Setup(Level.Trial)
